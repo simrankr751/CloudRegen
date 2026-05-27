@@ -33,14 +33,17 @@ public final class WandListener implements Listener {
         if (item == null || item.getType() != config.wandMaterial()) {
             return;
         }
+        if (event.getClickedBlock() == null) {
+            return;
+        }
         Player player = event.getPlayer();
-        Location clicked = event.getClickedBlock() == null ? player.getLocation() : event.getClickedBlock().getLocation();
-        if (event.getAction() == Action.LEFT_CLICK_BLOCK || event.getAction() == Action.LEFT_CLICK_AIR) {
+        Location clicked = event.getClickedBlock().getLocation();
+        if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
             selectionService.setPos1(player.getUniqueId(), clicked);
             Text.sendActionbar(player, messages.format("selection-pos1-actionbar", "%x%", String.valueOf(clicked.getBlockX()), "%y%", String.valueOf(clicked.getBlockY()), "%z%", String.valueOf(clicked.getBlockZ())));
             player.sendMessage(messages.format("selection-pos1", "%x%", String.valueOf(clicked.getBlockX()), "%y%", String.valueOf(clicked.getBlockY()), "%z%", String.valueOf(clicked.getBlockZ())));
             event.setCancelled(true);
-        } else if (event.getAction() == Action.RIGHT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_AIR) {
+        } else if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             selectionService.setPos2(player.getUniqueId(), clicked);
             Text.sendActionbar(player, messages.format("selection-pos2-actionbar", "%x%", String.valueOf(clicked.getBlockX()), "%y%", String.valueOf(clicked.getBlockY()), "%z%", String.valueOf(clicked.getBlockZ())));
             player.sendMessage(messages.format("selection-pos2", "%x%", String.valueOf(clicked.getBlockX()), "%y%", String.valueOf(clicked.getBlockY()), "%z%", String.valueOf(clicked.getBlockZ())));
