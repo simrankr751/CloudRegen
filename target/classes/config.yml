@@ -1,0 +1,24 @@
+﻿# Language code — plugins/CloudRegen/lang/<code>.yml (fallback: en)
+# ar cs da de en es fr he hu id it ja ko lt nl pl pt ro ru sk sv th tr uk vi zh
+language: en
+
+wand:
+  material: BLAZE_ROD
+  name: "&bCloudRegen Wand"
+regen:
+  blocks-per-cycle: 4096
+  max-chunks-per-cycle: 16
+  cycles-per-second: 20
+  safety-enabled-default: true
+  adaptive:
+    enabled: true
+    min-blocks-per-cycle: 512
+    max-blocks-per-cycle: 16384
+storage:
+  compression-level: 3
+  write-buffer-size: 131072
+  autosave-seconds: 60
+tracking:
+  enabled: true
+debug:
+  enabled: false

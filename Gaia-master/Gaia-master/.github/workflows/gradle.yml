@@ -1,0 +1,108 @@
+name: Build
+
+on:
+  push:
+    branches: [ '**' ]
+    tags-ignore: [ '**' ]
+  pull_request:
+  release:
+    types: [ published ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    if: ${{ github.event_name != 'pull_request' || github.repository != github.event.pull_request.head.repo.full_name }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+      - name: Setup java
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+      - name: Setup gradle
+        uses: gradle/actions/setup-gradle@v6
+      - name: Setup additional gradle cache
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.gradle/caches/fabric-loom
+            ~/.gradle/caches/paperweight-userdev
+            ~/.gradle/caches/neoformruntime
+            .gradle/loom-cache
+          key: ${{ runner.os }}-build-cache-${{ hashFiles('**/libs.versions.toml', '**/*.gradle.kts', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-build-cache-
+      - name: Execute gradle build
+        run: ./gradlew build
+      - name: Calculate checksums
+        shell: bash
+        run: |
+          build_dir="build"
+          summary_table="| File | SHA-256 Checksum |\n"
+          summary_table+="|------|------------------|\n"
+          for file in $build_dir/*.jar; do
+            if [[ -f "$file" ]]; then
+              filename=$(basename $file .jar)
+              checksum=$(sha256sum "$file" | cut -c 1-64)
+              summary_table+="| $filename | \`$checksum\` |\n"
+              echo "$checksum" > $build_dir/$filename.sha256
+            fi
+          done
+          echo -e $summary_table >> $GITHUB_STEP_SUMMARY
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: artifacts
+          path: |
+            build/*.jar
+            build/*.sha256
+          retention-days: 14
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
+    steps:
+      - name: Download stored artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: artifacts
+          path: publish
+      - name: Update release artifacts
+        uses: softprops/action-gh-release@v3
+        with:
+          files: publish/*
+  publish:
+    runs-on: ubuntu-latest
+    needs: release
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+      - name: Setup java
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+      - name: Setup gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: true
+          add-job-summary: 'on-failure'
+      - id: status
+        name: Determine status
+        run: ./gradlew printVersionStatus --quiet >> $GITHUB_ENV
+      - name: Publish release to modrinth
+        if: ${{ steps.status.outcome == 'success' && env.STATUS == 'release' }}
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          RELEASE_NOTES: ${{ github.event.release.body }}
+        run: ./gradlew modrinth
+      - name: Publish release to hangar
+        if: ${{ steps.status.outcome == 'success' && env.STATUS == 'release' }}
+        env:
+          HANGAR_TOKEN: ${{ secrets.HANGAR_TOKEN }}
+          RELEASE_NOTES: ${{ github.event.release.body }}
+        run: ./gradlew publishAllPublicationsToHangar

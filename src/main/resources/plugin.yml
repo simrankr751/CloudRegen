@@ -1,0 +1,17 @@
+﻿name: CloudRegen
+version: 1.0.0
+main: org.cloudstudios.cloudregen.CloudRegenPlugin
+api-version: '1.21'
+authors: [CloudStudios]
+folia-supported: true
+softdepend: [PlaceholderAPI]
+commands:
+  cr:
+    description: CloudRegen main command
+    usage: /cr help
+    permission: cloudregen.use
+permissions:
+  cloudregen.use:
+    default: op
+  cloudregen.admin:
+    default: op
