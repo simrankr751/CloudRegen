@@ -73,8 +73,8 @@ actionbar-safety-teleport: "&eהועבר למקום בטוח במהלך התחד
 debug-header: "&8&m--------------- &bCloudRegen Debug &8&m---------------"
 debug-active: "&7התחדשויות פעילות: &f%value%"
 debug-queued: "&7בלוקים בתור: &f%value%"
-debug-applied: "&7סה\"כ הוחל: &f%value%"
-debug-regens: "&7סה\"כ התחדשויות: &f%value%"
+debug-applied: '&7סה"כ הוחל: &f%value%'
+debug-regens: '&7סה"כ התחדשויות: &f%value%'
 debug-rate: "&7ממוצע בלוקים/שנ': &f%value%"
 debug-budget: "&7תקציב מחזור: &f%value%"
 debug-complete: "&aדוח דיבוג נשלח."

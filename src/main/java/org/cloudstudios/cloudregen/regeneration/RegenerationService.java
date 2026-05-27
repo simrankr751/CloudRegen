@@ -127,7 +127,14 @@ public final class RegenerationService {
             int worldX = (ChunkKey.x(cursor.chunkKey) << 4) + localX;
             int worldZ = (ChunkKey.z(cursor.chunkKey) << 4) + localZ;
             Block block = cursor.world.getBlockAt(worldX, y, worldZ);
-            block.setBlockData(regen.paletteData[palette], false);
+            BlockData expected = regen.paletteData[palette];
+            if (regen.metadata.getMode() == RegionMode.BROKEN) {
+                if (expected.getMaterial().isAir() || block.getBlockData().matches(expected)) {
+                    regen.remaining--;
+                    continue;
+                }
+            }
+            block.setBlockData(expected, false);
             regen.applied++;
             regen.remaining--;
             appliedCounter.increment();
@@ -261,22 +268,29 @@ public final class RegenerationService {
                 return;
             }
             Long2ObjectMap<LongOpenHashSet> placedChanges = tracker.placed(metadata.getId());
-            Long2ObjectMap<LongOpenHashSet> brokenChanges = tracker.broken(metadata.getId());
             for (Long2ObjectMap.Entry<IntList> entry : snapshot.chunkPacked().long2ObjectEntrySet()) {
                 long chunkKey = entry.getLongKey();
                 IntList source = entry.getValue();
                 IntList filtered = source;
-                if (metadata.getMode() != RegionMode.FULL) {
+                if (metadata.getMode() == RegionMode.PLACED) {
+                    LongOpenHashSet placed = placedChanges.get(chunkKey);
+                    if (placed == null || placed.isEmpty()) continue;
                     filtered = new it.unimi.dsi.fastutil.ints.IntArrayList(source.size());
-                    LongOpenHashSet changes = metadata.getMode() == RegionMode.PLACED ? placedChanges.get(chunkKey) : brokenChanges.get(chunkKey);
-                    if (changes == null || changes.isEmpty()) continue;
                     for (int i = 0; i < source.size(); i++) {
                         int packed = source.getInt(i);
                         int wx = (ChunkKey.x(chunkKey) << 4) + RegionSnapshot.unpackLocalX(packed);
                         int y = RegionSnapshot.unpackY(packed);
                         int wz = (ChunkKey.z(chunkKey) << 4) + RegionSnapshot.unpackLocalZ(packed);
-                        long worldPacked = PackedPos.pack(wx, y, wz);
-                        if (changes.contains(worldPacked)) filtered.add(packed);
+                        if (placed.contains(PackedPos.pack(wx, y, wz))) filtered.add(packed);
+                    }
+                    if (filtered.isEmpty()) continue;
+                } else if (metadata.getMode() == RegionMode.BROKEN) {
+                    filtered = new it.unimi.dsi.fastutil.ints.IntArrayList(source.size());
+                    for (int i = 0; i < source.size(); i++) {
+                        int packed = source.getInt(i);
+                        int paletteId = RegionSnapshot.unpackPalette(packed);
+                        if (paletteId < 0 || paletteId >= paletteData.length) continue;
+                        if (!paletteData[paletteId].getMaterial().isAir()) filtered.add(packed);
                     }
                     if (filtered.isEmpty()) continue;
                 }
