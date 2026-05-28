@@ -56,7 +56,17 @@ It is designed for arenas, mines, event maps, and farm resets where performance 
 /cr debug             - Show runtime stats
 
 
+```
 ### Permissions
 ```txt
 cloudregen.use
 cloudregen.admin
+```
+
+## **DOWNLOAD**
+
+https://www.spigotmc.org/resources/cloudregen-folia-supported-%E2%9C%85free-%E2%9A%99%EF%B8%8Foptimised.135629/
+
+## **DOCUMENTATION**
+
+https://cloudstudios.infinityfree.me/docs/cloudregen/index.html
