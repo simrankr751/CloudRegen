@@ -54,3 +54,9 @@ It is designed for arenas, mines, event maps, and farm resets where performance 
 /cr delete <name>     - Delete region
 /cr reload            - Reload config/lang
 /cr debug             - Show runtime stats
+
+
+### Permissions
+```txt
+cloudregen.use
+cloudregen.admin
